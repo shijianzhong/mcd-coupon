@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麦当劳优惠券自动领取工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(255, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+        h1 {
+            color: #fff;
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+        }
+        .card h2 {
+            color: #ff0000;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #ffcc00;
+            padding-bottom: 10px;
+        }
+        /* Token Input Styles */
+        .token-section {
+            text-align: center;
+        }
+        .token-section p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        .input-group {
+            margin: 25px 0;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 3px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ffcc00;
+            box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.1);
+        }
+        /* Button Styles */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+            z-index: -1;
+        }
+        .btn:hover::before {
+            left: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #ff9900 0%, #cc6600 100%);
+            box-shadow: 0 4px 15px rgba(255,165,0,0.3);
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #ff0000;
+            border: 3px solid #ff0000;
+        }
+        .btn-outline:hover {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+        }
+        /* Page Sections */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* Action Buttons Grid */
+        .action-buttons {
+            display: grid;
+            gap: 15px;
+        }
+        /* Coupons Grid */
+        .coupons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .coupon-card {
+            background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%);
+            border: 3px solid #ffc107;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .coupon-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,193,7,0.2)"/></svg>');
+            background-size: 25px 25px;
+            opacity: 0.5;
+        }
+        .coupon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #ff9800;
+        }
+        .coupon-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        .coupon-content {
+            padding: 15px;
+        }
+        .coupon-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #cc0000;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        .coupon-price {
+            color: #ff0000;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .coupon-expiry {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .coupon-tags {
+            color: #ff9800;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #ffcc00;
+        }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ff0000;
+        }
+        /* Error Message */
+        .error {
+            color: #d32f2f;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+            display: none;
+        }
+        .error.show {
+            display: block;
+        }
+        /* Success Message */
+        .success {
+            color: #2e7d32;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 8px;
+            border-left: 4px solid #4caf50;
+            display: none;
+        }
+        .success.show {
+            display: block;
+        }
+        /* Loading */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        .loading-spinner.show {
+            display: block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            header {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .card {
+                padding: 20px;
+            }
+            .coupons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>麦当劳优惠券自动领取工具</h1>
+        </header>
+
+        <!-- Token Input Page -->
+        <div id="token-page" class="page {{#unless has_token}}active{{/unless}}">
+            <div class="card token-section">
+                <h2>请输入您的MCP Token</h2>
+                <p>Token是用于访问麦当劳优惠券系统的密钥，请确保输入正确。</p>
+                <div id="token-error" class="error"></div>
+                <form id="token-form">
+                    <div class="input-group">
+                        <label for="token">MCP Token:</label>
+                        <input type="text" id="token" name="token" placeholder="请输入您的MCP Token" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">验证Token</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Page -->
+        <div id="main-page" class="page {{#if has_token}}active{{/if}}">
+            <div class="card">
+                <h2>优惠券操作</h2>
+                <div id="main-success" class="success"></div>
+                <div id="main-error" class="error"></div>
+                <div class="action-buttons">
+                    <button id="claim-btn" class="btn btn-primary">一键领取所有优惠券</button>
+                    <button id="view-coupons-btn" class="btn btn-secondary">查看已领取优惠券</button>
+                    <button id="reset-btn" class="btn btn-outline">重新设置Token</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coupons Page -->
+        <div id="coupons-page" class="page">
+            <div class="card">
+                <h2>我的优惠券</h2>
+                <button id="back-btn" class="btn btn-secondary" style="width: auto; display: inline-block; margin-bottom: 20px;">返回主页</button>
+                <div id="loading-spinner" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>正在加载优惠券...</p>
+                </div>
+                <div id="coupons-container" class="coupons-grid">
+                    <!-- Coupons will be loaded here -->
+                </div>
+                <div id="coupons-empty" class="empty-state" style="display: none;">
+                    <h3>暂无优惠券</h3>
+                    <p>您还没有领取任何优惠券，点击"一键领取"获取优惠券吧！</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>麦当劳优惠券自动领取工具 - HTML模式</p>
+        </footer>
+    </div>
+
+    <script>
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // Show message
+        function showMessage(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        // Token form submission
+        document.getElementById('token-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const token = document.getElementById('token').value;
+            const btn = this.querySelector('button');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showPage('main-page');
+                } else {
+                    document.getElementById('token-error').textContent = data.message || 'Token验证失败';
+                    document.getElementById('token-error').classList.add('show');
+                }
+            } catch (err) {
+                document.getElementById('token-error').textContent = '网络错误，请重试';
+                document.getElementById('token-error').classList.add('show');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // Claim all coupons
+        document.getElementById('claim-btn').addEventListener('click', async function() {
+            this.classList.add('loading');
+            this.disabled = true;
+            document.getElementById('main-error').classList.remove('show');
+            document.getElementById('main-success').classList.remove('show');
+
+            try {
+                const response = await fetch('/api/claim', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('main-success', data.message || '领取成功！');
+                    document.getElementById('main-success').classList.add('show');
+                } else {
+                    showMessage('main-error', data.message || '领取失败');
+                    document.getElementById('main-error').classList.add('show');
+                }
+            } catch (err) {
+                showMessage('main-error', '网络错误，请重试');
+                document.getElementById('main-error').classList.add('show');
+            } finally {
+                this.classList.remove('loading');
+                this.disabled = false;
+            }
+        });
+
+        // View coupons
+        document.getElementById('view-coupons-btn').addEventListener('click', async function() {
+            showPage('coupons-page');
+            loadCoupons();
+        });
+
+        // Load coupons
+        async function loadCoupons() {
+            const container = document.getElementById('coupons-container');
+            const empty = document.getElementById('coupons-empty');
+            const spinner = document.getElementById('loading-spinner');
+
+            container.innerHTML = '';
+            empty.style.display = 'none';
+            spinner.classList.add('show');
+
+            try {
+                const response = await fetch('/api/coupons');
+                const data = await response.json();
+
+                spinner.classList.remove('show');
+
+                if (data.success && data.coupons && data.coupons.length > 0) {
+                    data.coupons.forEach(coupon => {
+                        const card = document.createElement('div');
+                        card.className = 'coupon-card';
+                        card.innerHTML = `
+                            ${coupon.image_url ? `<img class="coupon-image" src="${escapeHtml(coupon.image_url)}" alt="${escapeHtml(coupon.title)}" loading="lazy">` : ''}
+                            <div class="coupon-content">
+                                <div class="coupon-title">${escapeHtml(coupon.title)}</div>
+                                <div class="coupon-price">${escapeHtml(coupon.price)}</div>
+                                <div class="coupon-expiry">${escapeHtml(coupon.expiry)}</div>
+                                ${coupon.tags ? `<div class="coupon-tags">${escapeHtml(coupon.tags)}</div>` : ''}
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                } else {
+                    empty.style.display = 'block';
+                }
+            } catch (err) {
+                spinner.classList.remove('show');
+                empty.innerHTML = '<h3>加载失败</h3><p>无法加载优惠券，请稍后重试</p>';
+                empty.style.display = 'block';
+            }
+        }
+
+        // Back to main
+        document.getElementById('back-btn').addEventListener('click', function() {
+            showPage('main-page');
+        });
+
+        // Reset token
+        document.getElementById('reset-btn').addEventListener('click', async function() {
+            if (!confirm('确定要重新设置Token吗？')) return;
+
+            try {
+                await fetch('/api/reset', { method: 'POST' });
+                document.getElementById('token').value = '';
+                showPage('token-page');
+            } catch (err) {
+                showMessage('main-error', '重置失败，请重试');
+                document.getElementById('main-error').classList.add('show');
+            }
+        });
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

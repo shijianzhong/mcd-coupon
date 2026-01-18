@@ -1,0 +1,21 @@
+# Build artifacts
+/target
+Cargo.lock
+
+# IDE
+.trae/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Config with sensitive data
+mcd-coupon-config.json
+config.json
+*.secret
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db

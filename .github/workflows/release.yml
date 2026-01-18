@@ -10,6 +10,10 @@ env:
   CARGO_TERM_COLOR: always
   BINARY_NAME: mcd-coupon
 
+# 添加权限配置
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:

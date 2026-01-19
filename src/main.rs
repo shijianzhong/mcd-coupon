@@ -7,6 +7,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 
 mod config;
 mod mcp;
+mod mcp_server;
 mod ui;
 mod utils;
 mod web;
@@ -18,6 +19,8 @@ enum Mode {
     Tui,
     /// HTML web interface mode
     Html,
+    /// MCP Server mode
+    McpServer,
 }
 
 fn main() -> Result<()> {
@@ -29,6 +32,7 @@ fn main() -> Result<()> {
         match args[1].to_lowercase().as_str() {
             "tui" | "-tui" | "--tui" | "1" => Mode::Tui,
             "html" | "-html" | "--html" | "web" | "-web" | "--web" | "2" => Mode::Html,
+            "mcpserver" | "-mcpserver" | "--mcpserver" | "mcp-server" | "3" => Mode::McpServer,
             "-h" | "--help" | "help" => {
                 print_help();
                 return Ok(());
@@ -52,6 +56,10 @@ fn main() -> Result<()> {
             let runtime = tokio::runtime::Runtime::new()?;
             runtime.block_on(web::run())?;
         },
+        Mode::McpServer => {
+            let runtime = tokio::runtime::Runtime::new()?;
+            runtime.block_on(run_mcp_server_mode())?;
+        },
     }
 
     Ok(())
@@ -66,6 +74,7 @@ fn print_help() {
     println!("  mcd-coupon          交互式选择模式");
     println!("  mcd-coupon tui      终端界面模式");
     println!("  mcd-coupon html     网页界面模式");
+    println!("  mcd-coupon mcpserver MCP服务器模式");
     println!("  mcd-coupon --help   显示帮助信息");
     println!();
 }
@@ -85,9 +94,12 @@ fn show_mode_menu() -> Result<Mode> {
     println!("║  [2] 终端模式 (TUI)                    ║");
     println!("║      在终端中运行，适合高级用户        ║");
     println!("║                                        ║");
+    println!("║  [3] MCP服务器模式                     ║");
+    println!("║      提供优惠券MCP工具服务             ║");
+    println!("║                                        ║");
     println!("╚════════════════════════════════════════╝");
     println!();
-    print!("请输入选项 [1/2] (默认1): ");
+    print!("请输入选项 [1/2/3] (默认1): ");
     io::stdout().flush()?;
 
     let mut input = String::new();
@@ -104,6 +116,11 @@ fn show_mode_menu() -> Result<Mode> {
             println!();
             println!("正在启动终端模式...");
             Ok(Mode::Tui)
+        }
+        "3" | "mcpserver" | "mcp-server" => {
+            println!();
+            println!("正在启动MCP服务器模式...");
+            Ok(Mode::McpServer)
         }
         _ => {
             println!();
@@ -157,4 +174,32 @@ fn run_tui_mode() -> Result<()> {
     terminal.show_cursor()?;
 
     result
+}
+
+/// Run the application in MCP Server mode
+async fn run_mcp_server_mode() -> Result<()> {
+    // Load configuration
+    let config = config::Config::load()?;
+
+    // Check if valid token exists
+    if !config.has_valid_token() {
+        println!("错误: 未找到有效的MCP Token");
+        println!("请先在配置文件中设置有效的Token，或使用其他模式获取Token");
+        println!("配置文件位置: {}", config::Config::get_config_path().display());
+        return Ok(());
+    }
+
+    // Initialize MCP client
+    let mcp_client = match mcp::McpClient::new(config.token.clone()) {
+        Ok(client) => client,
+        Err(e) => {
+            println!("初始化MCP客户端失败: {}", e);
+            return Ok(());
+        },
+    };
+
+    // Start MCP server
+    mcp_server::run_mcp_server(config, mcp_client).await?;
+
+    Ok(())
 }

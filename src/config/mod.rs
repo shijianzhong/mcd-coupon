@@ -3,19 +3,24 @@ use std::fs;
 use anyhow::{Context, Result};
 
 /// Application configuration
-#[derive(Debug, Deserialize, Serialize, Default)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct Config {
     pub token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mcp_server_port: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mcp_server_url: Option<String>,
 }
 
 impl Config {
     /// Load configuration from file
     pub fn load() -> Result<Self> {
-        // Try to load from primary path first
-        let primary_path = Self::get_config_path();
+        // Try to load from current directory first
+        let fallback_path = std::env::current_dir()?
+            .join("mcd-coupon-config.json");
         
-        if primary_path.exists() {
-            match Self::load_from_path(&primary_path) {
+        if fallback_path.exists() {
+            match Self::load_from_path(&fallback_path) {
                 Ok(config) => return Ok(config),
                 Err(_) => {
                     // 静默失败，直接尝试备用路径
@@ -23,18 +28,14 @@ impl Config {
             }
         }
         
-        // Fall back to current directory
-        let fallback_path = std::env::current_dir()?
-            .join("mcd-coupon-config.json");
+        // Fall back to primary path
+        let primary_path = Self::get_config_path();
         
-        if fallback_path.exists() {
-            match Self::load_from_path(&fallback_path) {
-                Ok(config) => {
-                    // 不在此处打印，在main.rs中通过app日志显示
-                    return Ok(config);
-                },
+        if primary_path.exists() {
+            match Self::load_from_path(&primary_path) {
+                Ok(config) => return Ok(config),
                 Err(_) => {
-                    // 静默失败，使用默认配置
+                    // 静默失败，直接尝试备用路径
                 }
             }
         }
@@ -97,7 +98,7 @@ impl Config {
     }
     
     /// Get the path to the configuration file
-    fn get_config_path() -> std::path::PathBuf {
+    pub fn get_config_path() -> std::path::PathBuf {
         // Try to get system config directory first
         if let Some(config_dir) = dirs::config_dir() {
             return config_dir.join("mcd-coupon-tui-rust").join("config.json");

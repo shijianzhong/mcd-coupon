@@ -1,0 +1,11 @@
+{
+  "mcp": "local-mcd-coupon",
+  "version": "0.1.0",
+  "description": "MCP服务器配置",
+  "servers": {
+    "local-mcd-coupon": {
+      "url": "http://localhost:8081",
+      "description": "本地MCP服务器"
+    }
+  }
+}

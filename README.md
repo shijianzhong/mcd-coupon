@@ -378,6 +378,16 @@ Token 会自动保存到配置文件：
 4. 看到 "MCP server starting on port 8081" 表示启动成功
 5. 在客户端配置MCP服务器URL为 `http://localhost:8081`
 
+## Skill
+
+### 麦当劳优惠券Skill
+
+Skill功能目前**待完善中**，提供了初步的接口和功能实现。
+
+#### 下载Skill包
+
+技能包文件：[mcdonalds-skill.zip](./src/assets/mcdonalds-skill.zip)
+
 ## 技术栈
 
 - **语言**: Rust

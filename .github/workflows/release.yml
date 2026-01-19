@@ -10,7 +10,6 @@ env:
   CARGO_TERM_COLOR: always
   BINARY_NAME: mcd-coupon
 
-# 添加权限配置
 permissions:
   contents: write
 
@@ -57,22 +56,40 @@ jobs:
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Rename binary (Unix)
+      - name: Prepare binary (Unix)
         if: matrix.os != 'windows-latest'
         run: |
           cp target/${{ matrix.target }}/release/mcd-coupon-tui-rust ${{ matrix.asset_name }}
           chmod +x ${{ matrix.asset_name }}
 
-      - name: Rename binary (Windows)
+      - name: Prepare binary (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           copy target\${{ matrix.target }}\release\mcd-coupon-tui-rust.exe ${{ matrix.asset_name }}
 
-      - name: Upload artifact
+      - name: Create DMG (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          # Create app directory structure
+          mkdir -p dmg_content
+          cp ${{ matrix.asset_name }} dmg_content/麦当劳优惠券工具
+          chmod +x dmg_content/麦当劳优惠券工具
+
+          # Create DMG
+          hdiutil create -volname "麦当劳优惠券工具" -srcfolder dmg_content -ov -format UDZO ${{ matrix.asset_name }}.dmg
+
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: ${{ matrix.asset_name }}
+
+      - name: Upload DMG artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}.dmg
+          path: ${{ matrix.asset_name }}.dmg
 
   release:
     needs: build

@@ -13,21 +13,56 @@
 
 ## 安装
 
+### 直接下载（推荐）
+
+前往 [Releases](https://github.com/shijianzhong/mcd-coupon/releases) 页面下载对应平台的文件：
+
+| 平台 | 文件 | 说明 |
+|------|------|------|
+| **Windows** | `mcd-coupon-windows-x86_64.exe` | 双击运行 |
+| **macOS (Intel)** | `mcd-coupon-macos-x86_64.dmg` | DMG 安装包，双击挂载后运行 |
+| **macOS (Intel)** | `mcd-coupon-macos-x86_64` | 命令行版本 |
+| **macOS (Apple Silicon)** | `mcd-coupon-macos-arm64.dmg` | DMG 安装包，双击挂载后运行 |
+| **macOS (Apple Silicon)** | `mcd-coupon-macos-arm64` | 命令行版本 |
+| **Linux** | `mcd-coupon-linux-x86_64` | 命令行版本 |
+
+#### macOS 使用说明
+
+**方式一：DMG 安装包（推荐小白用户）**
+1. 下载 `.dmg` 文件
+2. 双击打开 DMG 文件
+3. 将「麦当劳优惠券工具」拖到任意位置（如桌面）
+4. 双击运行
+
+**方式二：命令行版本**
+```bash
+# 下载后给予执行权限
+chmod +x mcd-coupon-macos-arm64
+
+# 运行
+./mcd-coupon-macos-arm64
+```
+
+#### Linux 使用说明
+```bash
+# 下载后给予执行权限
+chmod +x mcd-coupon-linux-x86_64
+
+# 运行
+./mcd-coupon-linux-x86_64
+```
+
 ### 从源码编译
 
 确保已安装 [Rust](https://rustup.rs/)，然后执行：
 
 ```bash
-git clone https://github.com/你的用户名/mcd-coupon.git
+git clone https://github.com/shijianzhong/mcd-coupon.git
 cd mcd-coupon
 cargo build --release
 ```
 
 编译后的可执行文件位于 `target/release/mcd-coupon-tui-rust`
-
-### 直接下载
-
-前往 [Releases](https://github.com/你的用户名/mcd-coupon/releases) 页面下载对应平台的可执行文件。
 
 ## 使用方法
 

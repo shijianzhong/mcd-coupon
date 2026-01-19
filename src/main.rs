@@ -10,6 +10,7 @@ mod mcp;
 mod mcp_server;
 mod ui;
 mod utils;
+use utils::open_mcp_login_page;
 mod web;
 
 /// Application mode
@@ -160,7 +161,9 @@ fn run_tui_mode() -> Result<()> {
             },
         }
     } else {
-        // If no valid token, start with token input screen
+        // If no valid token, start with token input screen and help open login page
+        println!("未检测到已保存的 Token，请在浏览器打开获取：https://open.mcd.cn/mcp/login");
+        open_mcp_login_page("https://open.mcd.cn/mcp/login");
         app.current_screen = ui::screens::ScreenType::TokenInput(ui::screens::TokenInputScreen::new());
     }
 
@@ -179,14 +182,39 @@ fn run_tui_mode() -> Result<()> {
 /// Run the application in MCP Server mode
 async fn run_mcp_server_mode() -> Result<()> {
     // Load configuration
-    let config = config::Config::load()?;
+    let mut config = config::Config::load()?;
 
-    // Check if valid token exists
+    // If no token, allow user to input once and save
     if !config.has_valid_token() {
-        println!("错误: 未找到有效的MCP Token");
-        println!("请先在配置文件中设置有效的Token，或使用其他模式获取Token");
-        println!("配置文件位置: {}", config::Config::get_config_path().display());
-        return Ok(());
+        println!("未检测到已保存的 Token，请输入 Token 后回车（留空则取消）：");
+        println!("如果没有 Token，可在浏览器打开获取：https://open.mcd.cn/mcp/login");
+        // 尝试自动打开获取 Token 的页面（忽略失败）
+        open_mcp_login_page("https://open.mcd.cn/mcp/login");
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        let input_token = input.trim().to_string();
+
+        // Format token with Bearer prefix if needed
+        let token = if input_token.starts_with("Bearer ") {
+            input_token
+        } else {
+            format!("Bearer {}", input_token)
+        };
+
+        if token.is_empty() {
+            println!("未输入 Token，已取消启动 MCP 服务器。");
+            println!("配置文件位置: {}", config::Config::get_config_path().display());
+            return Ok(());
+        }
+
+        config.token = token;
+        if let Err(e) = config.save() {
+            println!("保存 Token 失败: {}", e);
+            println!("配置文件位置: {}", config::Config::get_config_path().display());
+            return Ok(());
+        }
+
+        println!("Token 已保存到配置文件: {}", config::Config::get_config_path().display());
     }
 
     // Initialize MCP client

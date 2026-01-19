@@ -18,3 +18,19 @@ pub fn truncate_string(s: &str, width: usize) -> String {
         format!("{:.width$}...", s, width = width - 3)
     }
 }
+
+/// Open MCP login page to help user obtain token
+pub fn open_mcp_login_page(url: &str) {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = std::process::Command::new("open").arg(url).spawn();
+    }
+    #[cfg(target_os = "windows")]
+    {
+        let _ = std::process::Command::new("cmd").args(["/C", "start", "", url]).spawn();
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+    }
+}

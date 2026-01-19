@@ -4,7 +4,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use crate::{mcp::McpClient, config::Config};
+use crate::{mcp::McpClient, config::Config, utils::open_mcp_login_page};
 
 /// Coupon structure for template rendering
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -104,6 +104,9 @@ pub async fn run() -> Result<()> {
                     state.add_log(format!("加载Token失败: {}", e));
                 },
             }
+        } else {
+            println!("未检测到已保存的 Token，请在浏览器打开获取：https://open.mcd.cn/mcp/login");
+            open_mcp_login_page("https://open.mcd.cn/mcp/login");
         }
     }
 

@@ -1,6 +1,6 @@
 {
   "mcp": "local-mcd-coupon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP服务器配置",
   "servers": {
     "local-mcd-coupon": {

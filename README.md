@@ -384,9 +384,24 @@ Token 会自动保存到配置文件：
 
 Skill功能目前**待完善中**，提供了初步的接口和功能实现。
 
+#### Skill能力展示
+
+![Skill能力展示1](./src/assets/skill1.png)
+
+![Skill能力展示2](./src/assets/skill2.png)
+
+![Skill能力展示3](./src/assets/skill3.png)
+
+#### Skill演示视频
+
+<video width="640" height="360" controls>
+  <source src="./src/assets/skill.mp4" type="video/mp4">
+  您的浏览器不支持视频播放。
+</video>
+
 #### 下载Skill包
 
-技能包文件：[mcdonalds-skill.zip](./src/assets/mcdonalds-skill.zip)
+技能包文件：[mcd-coupon.zip](./src/assets/mcd-coupon.zip)
 
 ## 技术栈
 
